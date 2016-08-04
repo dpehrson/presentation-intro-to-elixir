@@ -1,0 +1,932 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							![Elixir Logo](./img/elixir.png)
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## An Introduction to Erlang
+
+							Wait, what?
+
+							- Erlang is (was) an obscure programming language invented in the 80s by Ericsson
+							<!-- .element: class="fragment" -->
+							- Built to support telephony switching equipment at a global scale
+							<!-- .element: class="fragment" -->
+							- Designed to be distributed, concurrent, highly-available, fault-tolerant, and hot-swappable
+							<!-- .element: class="fragment" -->
+							- Can achieve 9 nine's of availability (31.5569 milliseconds of downtime per year)
+							<!-- .element: class="fragment" -->
+							- Unfortunately, it is an ugly, ugly language
+							<!-- .element: class="fragment" -->
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## An Introduction to Elixir
+
+							- A compiled, dynamically-typed, functional language that supports metaprogramming
+							<!-- .element: class="fragment" -->
+							- Built on top of Erlang and compiles to the same byte-code
+							<!-- .element: class="fragment" -->
+							- Can utilize Erlang code/libraries
+							<!-- .element: class="fragment" -->
+							- Has all benefits of Erlang...
+							<!-- .element: class="fragment" -->
+							- ...but with a Ruby-like syntax
+							<!-- .element: class="fragment" -->
+
+							Prediction: Likely to replace Ruby/Rails over the next few years.
+							<!-- .element: class="fragment" -->
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type-"text/template">
+							## Basic Types
+
+							Elixir has 8 basic types, all of which are immutable.
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Integers
+
+							- Represent whole numbers
+							- Division of an Integer always produces a Float
+							<!-- .element: class="fragment" -->
+
+							<pre><code class="lang-elixir" data-trim>
+iex> 3 + 3
+6
+iex> 3 - 3
+0
+iex> 3 * 3
+9
+iex> 3 / 3
+1.0
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Floats
+
+							- Represent decimal numbers
+							- Should not be trusted for important operations
+							<!-- .element: class="fragment" -->
+							- Third-party Decimal library should be used, may be promoted to standard library
+							<!-- .element: class="fragment" -->
+
+							<pre><code class="lang-elixir" data-trim>
+iex> 3.5 + 3.5
+7.0
+iex> 3.5 - 3.5
+0.0
+iex> 3.5 * 3.5
+12.25
+iex> 3.5 / 3.5
+1.0
+iex> 1.1 * 1.1
+1.2100000000000002
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Booleans
+
+							- Represent logical propositions
+							- Comparisons do not support squishy concept of "truthiness"
+							<!-- .element: class="fragment" -->
+
+							<pre><code class="lang-elixir" data-trim>
+iex> true == true
+true
+iex> true == false
+false
+iex> true == 1
+false
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Atoms
+
+							- Represent constant values
+							- Used primarily for programatic strings such as keys
+							<!-- .element: class="fragment" -->
+							- Boolean values are actually just Atoms
+							<!-- .element: class="fragment" -->
+							- Must follow variable naming unless quoted
+							<!-- .element: class="fragment" -->
+							- Should generally not be dynamically generated because of allocation limits in the language
+							<!-- .element: class="fragment" -->
+
+							<pre><code class="lang-elixir" data-trim>
+iex> :hello
+:hello
+iex> :true == true
+true
+iex> :1hello
+** (SyntaxError) iex:17: unexpected token: ":"
+iex> :"1hello"
+:"1hello"
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Strings
+
+							- Are internally represented as UTF-8 binary byte lists
+							- Data length may not be the same as string length
+							<!-- .element: class="fragment" -->
+							- String module is UTF-8 aware
+							<!-- .element: class="fragment" -->
+
+							<pre><code class="lang-elixir" data-trim>
+iex> "hallå"
+"hallå"
+iex> String.to_charlist("hallå")
+[104, 97, 108, 108, 229]
+iex> IO.puts([104, 97, 108, 108, 229])
+hallå
+iex> String.length("hallå")
+5
+iex> Kernel.byte_size("hallå")
+6
+iex> String.upcase("hallå")
+"HALLÅ"
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Lists
+
+							- Represent a set of values stored as a Linked List
+							- Item types can be mixed
+							<!-- .element: class="fragment" -->
+							- Can be concatenated and subtracted from each other
+							<!-- .element: class="fragment" -->
+							- Head/Tail operations on Lists are integral to the language for recursion
+							<!-- .element: class="fragment" -->
+							- Fast to prepend values, slow for everything else
+							<!-- .element: class="fragment" -->
+
+							<pre><code class="lang-elixir" data-trim>
+iex> Kernel.length([1, true, 2, false])
+4
+iex> ([1, true] ++ [2, false]) -- [true]
+[1, 2, false]
+iex> hd([1, true, 2, false])
+1
+iex> tl([1, true, 2, false])
+[true, 2, false]
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Tuples
+
+							- Represent a set of values stored contiguously in memory
+							- Item types can be mixed
+							<!-- .element: class="fragment" -->
+							- Commonly used to return success/failure context from Functions
+							<!-- .element: class="fragment" -->
+							- Fast to read, slow to write
+							<!-- .element: class="fragment" -->
+
+							<pre><code class="lang-elixir" data-trim>
+iex> {:ok, 2}
+{:ok, 2}
+iex> Kernel.tuple_size({:ok, 2})
+2
+iex> Kernel.elem({:ok, 2}, 0)
+:ok
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Functions
+
+							- Are first-class citizens which can be passed to, and returned from, other functions
+							- Are generally defined in Modules, but can be anonymous
+							<!-- .element: class="fragment" -->
+							- Are referenced by name + arity
+							<!-- .element: class="fragment" -->
+							- Final statement is implicit return, no explit returns
+							<!-- .element: class="fragment" -->
+
+							<pre><code class="lang-elixir" data-trim>
+iex> add = fn (n1, n2) -> n1 + n2 end
+#Function<0.0000000/2 in :erl_eval.expr/5>
+iex> add.(1, 2)
+3
+iex> Kernel.is_function(add)
+true
+iex> Kernel.is_function(add, 1)
+false
+iex> (&Kernel.is_function/2).(add, 2)
+true
+iex>
+							</code></pre>
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type-"text/template">
+							## Associative Types
+
+							In addition to the basic types, Elixir has two important associative types
+							that are simply basic types of a specific shape.
+						</script>
+					</section>
+					<section data-markdown>
+						<script type-"text/template">
+							## Keyword Lists
+
+							- Are Lists of two-element Tuples containing an Atom key and arbitrary value
+							- Commonly used for optional function arguments
+							<!-- .element: class="fragment" -->
+							- Keys are ordered, must be Atoms, and may be duplicated
+							<!-- .element: class="fragment" -->
+							- Key values are taken from the front
+							<!-- .element: class="fragment" -->
+							- The Keyword module provides functions for advanced operations
+							<!-- .element: class="fragment" -->
+
+							<pre><code class="lang-elixir" data-trim>
+iex> list = [{:a, 1}, {:b, 2}, a: 3]
+[a: 1, b: 2, a: 3]
+iex> list[:a]
+1
+iex> Keyword.get_values(list, :a)
+[1, 3]
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type-"text/template">
+							## Maps
+
+							- Keys are not ordered, can be of any type, and are unique
+							- Commonly used to represent structured data
+							<!-- .element: class="fragment" -->
+							- Are the basis for named structs
+							<!-- .element: class="fragment" -->
+							- The Map module provides functions for advanced operations
+							<!-- .element: class="fragment" -->
+
+							<pre><code class="lang-elixir" data-trim>
+iex> %{hello: "world"}.hello
+"world"
+iex> %{100 => "One Hundred"}[100]
+"One Hundred"
+iex> Map.keys(%{a: 1, b: 2})
+[:a, :b]
+iex> map = %{a: 1, b: 2}
+%{a: 1, b: 2}
+iex> %{map | b: 3}
+%{a: 1, b: 3}
+							</code></pre>
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							## Operators
+
+							Elixir has all the normal operators you expect (+, -, /, *)
+							and a few that might look different...
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## String Concatenation
+
+							<pre><code class="lang-elixir" data-trim>
+iex> "Hello" <> " " <> "world"
+"Hello world"
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Boolean Logic
+
+							- and, or, and not expect Boolean values
+							- &&, ||, and ! accept any value
+							<!-- .element: class="fragment" -->
+							- For the latter, anything that is not false or nil is "truthy"
+							<!-- .element: class="fragment" -->
+
+							<pre><code class="lang-elixir" data-trim>
+iex> 1 and true
+** (ArgumentError) argument error: 1
+iex> 1 && true
+true
+iex> not nil
+** (ArgumentError) argument error
+    :erlang.not(nil)
+iex> !nil
+true
+iex> !"hello"
+false
+							</code></pre>
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							## Pattern Matching
+
+							One of the most important aspects of the language.
+
+							Elixir does not have assignment, it has pattern matching and capturing.
+							<!-- .element: class="fragment" -->
+
+							The = operator is simply an equality assertion that either:
+							<!-- .element: class="fragment" -->
+
+							- Raises an error if the assertion fails; or
+							<!-- .element: class="fragment" -->
+
+							- Returns the right-hand value if it succeeds.
+							<!-- .element: class="fragment" -->
+
+							If a variable is present in the left-hand value, the equivalent right-hand value will be copied to it unless pinned.
+							<!-- .element: class="fragment" -->
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Pattern Matching Assertions
+
+							Returns the right-hand value if the pattern match succeeds
+							<!-- .element: class="fragment" data-fragment-index="1" -->
+
+							<pre class="fragment" data-fragment-index="1"><code class="lang-elixir" data-trim>
+iex> {100, "X"} = {100, "X"}
+{100, "X"}
+							</code></pre>
+
+							Raises a MatchError if it does not
+							<!-- .element: class="fragment" data-fragment-index="2" -->
+
+							<pre class="fragment" data-fragment-index="2"><code class="lang-elixir" data-trim>
+iex> {100, ""} = Integer.parse("100X")
+** (MatchError) no match of right hand side value: {100, "X"}
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Pattern Matching Captures
+
+							- Values from the right-hand side are copied to variables on the left-hand side if the overall pattern is matched
+							<!-- .element: class="fragment" data-fragment-index="1" -->
+							- Multiple and nested assertions are supported
+							<!-- .element: class="fragment" data-fragment-index="1" -->
+							- Effectively HIGH-ENERGY destructuring assignments
+							<!-- .element: class="fragment" data-fragment-index="2" -->
+
+							<pre class="fragment" data-fragment-index="1"><code class="lang-elixir" data-trim>
+iex> ret = {n, "X"} = Integer.parse("100X")
+{100, "X"}
+iex> ret
+{100, "X"}
+iex> n
+100
+							</code></pre>
+
+							Variables can be forced to match based on their value rather than capture using the ^ (pin) operator
+							<!-- .element: class="fragment" data-fragment-index="3" -->
+
+							<pre class="fragment" data-fragment-index="3"><code class="lang-elixir" data-trim>
+iex> {:ok, ^n} = {:ok, 0}
+** (MatchError) no match of right hand side value: {:ok, 0}
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Pattern Matching Lists
+
+							<pre><code class="lang-elixir" data-trim>
+iex> [{:a, a_value} | rest] = [a: 1, b: 2, c: 3]
+[a: 1, b: 2, c: 3]
+iex> a_value
+1
+iex> rest
+[b: 2, c: 3]
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Pattern Matching Maps
+
+							<pre><code class="lang-elixir" data-trim>
+iex> %{type: :error, msg: m} = %{type: :error, msg: "Failure"}
+%{message: "Failure", type: :error}
+iex> m
+"Failure"
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Pattern Matching Insanity
+
+							<pre><code class="lang-elixir" data-trim>
+iex> ret = {:error, %{reasons: ["One", "Two"], count: 2}}
+{:error, %{count: 2, reasons: ["One", "Two"]}}
+iex> {:error = status, %{
+		reasons: [first | _rest] = all,
+		count: c
+     }} = ret
+{:error, %{count: 2, reasons: ["One", "Two"]}}
+iex> status
+:error
+iex> first
+"One"
+iex> all
+["One", "Two"]
+iex> c
+2
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## SURPRISE
+
+							All of this can be used in function definitions to match/capture against parameters.
+
+							![Mind Blown](./img/mind-blown.gif)
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							## Functions
+
+							Why we're all here, pay attention.
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Declaration
+
+							Inline:
+							<!-- .element: class="fragment" data-fragment-index="1" -->
+
+							<pre class="fragment" data-fragment-index="1"><code class="lang-elixir" data-trim>
+iex> hello = fn(who) -> "Hello" <> " " <> who end
+#Function<0.00000000/1 in :erl_eval.expr/5>
+iex> hello.("World")
+"Hello World"
+							</code></pre>
+
+							Module:
+							<!-- .element: class="fragment" data-fragment-index="2" -->
+
+							<pre class="fragment" data-fragment-index="2"><code class="lang-elixir" data-trim>
+defmodule Greeter do
+	def hello(who), do: build_hello(who)
+	defp build_hello(who), do: "Hello #{who}"
+end
+							</code></pre>
+
+							<pre class="fragment" data-fragment-index="2"><code class="lang-elixir" data-trim>
+iex> Greeter.hello("World")
+"Hello World"
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Oneliners vs Multiliners
+
+							One-liners can be good for readability if the function is simple
+							<!-- .element: class="fragment" data-fragment-index="1" -->
+
+							<pre class="fragment" data-fragment-index="1"><code class="lang-elixir" data-trim>
+defmodule MyModule do
+	def one_liner(arg), do: arg <> " one"
+end
+							</code></pre>
+
+							Multi-liners require an end
+							<!-- .element: class="fragment" data-fragment-index="2" -->
+
+							<pre class="fragment" data-fragment-index="2"><code class="lang-elixir" data-trim>
+defmodule MyModule
+	def multi_liner(arg) do
+		arg = arg <> " multi"
+		arg
+	end
+end
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Piping
+
+							Functions can be piped using the `|>` symbol similar to unix pipes where the
+							output of one function is passed as the first parameter to the next function.
+
+							<pre class="fragment"><code class="lang-elixir" data-trim>
+defmodule IntegerOperator do
+	def add(n1, n2), do: n1 + n2
+	def sub(n1, n2), do: n1 - n2
+	def mult(n1, n2), do: n1 * n2
+end
+							</code></pre>
+							<pre class="fragment"><code class="lang-elixir" data-trim>
+iex> import IntegerOperator
+IntegerOperator
+iex> 10 |> add(1) |> mult(3) |> sub(2) |> add(5)
+36
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Pattern Matches
+
+							- Functions can pattern match on parameters
+							<!-- .element: class="fragment" -->
+							- Functions with different pattern matches can share names, first match wins
+							<!-- .element: class="fragment" -->
+
+							<pre class="fragment"><code class="lang-elixir" data-trim>
+defmodule Greeter do
+	def greet("Hello:" <> v2), do: "Hello #{v2}"
+	def greet({:ok, v1, v2}), do: {v1, v2}
+	def greet(%{key1: %{sub_key: v1}, key2: v2}), do: %{v1 => v2}
+	def greet(_), do: "Hello...you"
+end
+							</code></pre>
+							<pre class="fragment"><code class="lang-elixir" data-trim>
+iex> Greeter.greet("Hello:World")
+"Hello World"
+iex> Greeter.greet({:ok, "Hej", "Världen"})
+{"Hej", "Världen"}
+iex> Greeter.greet(%{key1: %{sub_key: "Hola"}, key2: "Mundo"})
+%{"Hola" => "Mundo"}
+iex> Greeter.greet(true)
+"Hello...you"
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Guards
+
+							- Functions can put constraints on parameters using a subset of language operators and functions
+							<!-- .element: class="fragment" -->
+							- This includes variables pulled from pattern matches
+							<!-- .element: class="fragment" -->
+
+							<pre class="fragment"><code class="lang-elixir" data-trim>
+defmodule Math do
+	def div(n1, n2)
+		when is_integer(n1) and is_integer(n2) and n2 != 0
+	do
+		n1 / n2
+	end
+end
+							</code></pre>
+							<pre class="fragment"><code class="lang-elixir" data-trim>
+iex> Math.div(9, "3")
+** (FunctionClauseError) no function clause matching in Math.div/2
+iex> Math.div(9, 0)
+** (FunctionClauseError) no function clause matching in Math.div/2
+iex> Math.div(9, 3)
+3.0
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Recursion
+
+							Using all these tools, common programming problems can be reimagined as combinations
+							of simple functions.
+
+							<pre class="fragment"><code class="lang-elixir" data-trim>
+defmodule IntegerFinder do
+	def first_neg([]), do: nil
+	def first_neg([h | _t]) when is_integer(h) and h < 0, do: h
+	def first_neg([_h | t]), do: first_neg(t)
+end
+							</code></pre>
+							<pre class="fragment"><code class="lang-elixir" data-trim>
+iex> IntegerFinder.first_neg([])
+nil
+iex> IntegerFinder.first_neg(["hello", "world"])
+nil
+iex> IntegerFinder.first_neg([1, 2, 3])
+nil
+iex> IntegerFinder.first_neg([1, 2, -4, 3])
+-4
+							</code></pre>
+						</script>
+					</section>
+				</section>
+<!--
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							## Modules
+
+							Are used to:
+
+							- Organize code
+							- Contain functions
+							- Define exceptions
+							- Define named structs
+							- Define contracts for other modules
+
+							<pre><code class="lang-elixir" data-trim>
+defmodule MyModule do
+	# Module body would be defined here.
+end
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Exceptions
+
+							- Take the name of the module they are defined in
+							- Are defined within a module using `defexception`
+
+							<pre><code class="lang-elixir" data-trim>
+defmodule MyError do
+	defexception message: "Error"
+end
+							</code></pre>
+							<pre><code class="lang-elixir" data-trim>
+iex> raise MyError
+** (MyError) Error
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Structs
+
+							- Take the name of the module they are defined in
+							- Are defined within a module using `defstruct`
+							- When declared, define the keys they support along with defaults for each key
+
+							<pre><code class="lang-elixir" data-trim>
+defmodule Animal do
+	defstruct [type: :human, name: ""]
+end
+							</code></pre>
+							<pre><code class="lang-elixir" data-trim>
+iex> %Animal{name: "Daniel"}
+%Animal{name: "Daniel", type: :human}
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## Behaviours
+
+							- Yes, it won't compile without the "u". ಠ_ಠ
+							- Define function signatures a module must implement to comply
+
+							<pre><code class="lang-elixir" data-trim>
+defmodule Concatenator do
+	@callback concatenate(String.t, String.t) :: String.t
+end
+
+defmodule PipeConcatenator do
+	@behaviour Concatenator
+
+	def concatenate(s1, s2), do: s1 <> "|" <> s2
+end
+							</code></pre>
+							<pre><code class="lang-elixir" data-trim>
+iex> PipeConcatenator.concatenate("Hello", "World")
+"Hello|World"
+							</code></pre>
+						</script>
+					</section>
+				</section>
+-->
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							## Examples
+
+							Let's take a look at some common problems and how they could be solved the elixir way.
+						</script>
+					</section>
+					<section data-markdown data-transition="slide-in fade-out">
+						<script type="text/template">
+							## Projection (Javascript)
+
+							<pre><code class="lang-javascript" data-trim>
+var IntegerProjector = {
+	addOne: function(numbers) {
+		var newNumbers = [];
+		for (var i = 0; i < numbers.length; i++) {
+			var n = numbers[i];
+			if (!(n === parseInt(n, 10))) {
+				throw new Error("Not an integer");
+			}
+			newNumbers.push(n + 1);
+		}
+		return newNumbers;
+	}
+};
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown data-transition="fade-in slide-out">
+						<script type="text/template">
+							## Projection (Elixir)
+
+							<pre><code class="lang-elixir" data-trim>
+defmodule IntegerProjector do
+	def add_one([]), do: []
+	def add_one([head | tail]) when is_integer(head) do
+		[head + 1] ++ add_one(tail)
+	end
+end
+							</code></pre>
+							<pre class="fragment"><code class="lang-elixir" data-trim>
+iex> IntegerProjector.add_one([])
+[]
+iex> IntegerProjector.add_one([1, "a"])
+** (FunctionClauseError) no function clause matching in
+		IntegerProjector.add_one/1
+    iex:13: IntegerProjector.add_one(["a"])
+    iex:14: IntegerProjector.add_one/1
+iex> IntegerProjector.add_one([1, 2, 3])
+[2, 3, 4]
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown data-transition="slide-in fade-out">
+						<script type="text/template">
+							## Reduction (Javascript)
+
+							<pre><code class="lang-javascript" data-trim>
+var IntegerReducer = {
+	sum: function(accumulator, numbers) {
+		for (var i = 0; i < numbers.length; i++) {
+			var n = numbers[i];
+			if (!(n === parseInt(n, 10))) {
+				throw new Error("Not an integer");
+			}
+			accumulator += n;
+		}
+		return accumulator;
+	}
+};
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown data-transition="fade-in slide-out">
+						<script type="text/template">
+							## Reduction (Elixir)
+
+							<pre><code class="lang-elixir" data-trim>
+defmodule IntegerReducer do
+	def sum(accumulator, []) when is_integer(accumulator) do
+		accumulator
+	end
+	def sum(accumulator, [head | tail])
+		when is_integer(accumulator) and is_integer(head)
+	do
+		sum((accumulator + head), tail)
+	end
+end
+							</code></pre>
+							<pre class="fragment"><code class="lang-elixir" data-trim>
+iex(16)> IntegerReducer.sum(10, [])
+10
+iex(17)> IntegerReducer.sum(10, ["a"])
+** (FunctionClauseError) no function clause matching in
+		IntegerReducer.sum/2
+    iex:16: IntegerReducer.sum(10, ["a"])
+iex(17)> IntegerReducer.sum(10, [1, 2, 3])
+16
+							</code></pre>
+						</script>
+					</section>
+					<section data-markdown>
+						<script type="text/template">
+							## HTTP Response Handling
+
+							<pre><code class="lang-elixir" data-trim>
+defmodule Getter
+	alias HTTPoison.Response as R
+
+	def get(url), do: url |> make_request |> handle_response
+
+	defp make_request(url), do: HTTPoison.get!(url)
+
+	defp handle_response(%R{status_code: code, headers: headers})
+		when code in [301, 302]
+	do
+		get(headers["Location"])
+	end
+	defp handle_response(%R{status_code: 404}) do
+		{:error, :not_found}
+	end
+	defp handle_response(%R{status_code: 200, body: body}) do
+		{:ok, body}
+	end
+	defp handle_response(_), do: {:error, :unhandled}
+end
+							</code></pre>
+						</script>
+					</section>
+				</section>
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							## Closing it out
+
+							There is so much more to Elixir
+
+							- Distributed execution of code across nodes
+							<!-- .element: class="fragment" -->
+							- Lightweight concurrency through the Language Process model
+							<!-- .element: class="fragment" -->
+							- In-place, hot-swappable code changes without system process restarts
+							<!-- .element: class="fragment" -->
+							- Fault-tolerant recovery of crashed Language Processes with no downtime
+							<!-- .element: class="fragment" -->
+							- Metaprogramming that allows for extending the language at compile-time
+							<!-- .element: class="fragment" -->
+						</script>
+					</section>
+				</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
